@@ -28,7 +28,7 @@ class UserController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/edit', name: '.update', methods: ['GET', 'POST'])]
+    #[Route('/{id}/update', name: '.update', methods: ['GET', 'POST'])]
     public function update(?User $user, Request $request): Response|RedirectResponse
     {
         // On vérifi si l'utilisateur est trouvé ou non
@@ -53,5 +53,26 @@ class UserController extends AbstractController
         return $this->render('Backend/Users/update.html.twig', [
             'form' => $form,
         ]);
+    }
+
+    #[Route('/{id}/delete', name: '.delete', methods: ['POST'])]
+    public function delete(?User $user, Request $request): RedirectResponse
+    {
+        if (!$user) {
+            $this->addFlash('error', 'User non trouvé');
+
+            return $this->redirectToRoute('admin.users.index');
+        }
+
+        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->request->get('token'))) {
+            $this->em->remove($user);
+            $this->em->flush();
+
+            $this->addFlash('success', 'User supprimé avec succès');
+        } else {
+            $this->addFlash('error', 'Invalide Token CSRF');
+        }
+
+        return $this->redirectToRoute('admin.users.index');
     }
 }
