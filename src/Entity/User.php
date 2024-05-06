@@ -52,6 +52,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     )]
     private ?string $lastName = null;
 
+    public function __toString(): string
+    {
+        return "$this->firstName $this->lastName";
+    }
+
+    public function fullName(): string
+    {
+        return "$this->firstName $this->lastName";
+    }
+
     public function getId(): ?int
     {
         return $this->id;
