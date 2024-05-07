@@ -7,6 +7,7 @@ use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -28,7 +29,7 @@ class ArticleController extends AbstractController
     }
 
     #[Route('/create', name: '.create', methods: ['GET', 'POST'])]
-    public function create(Request $request): Response
+    public function create(Request $request): Response|RedirectResponse
     {
         $article = new Article;
 
@@ -47,5 +48,52 @@ class ArticleController extends AbstractController
         return $this->render('Backend/Articles/create.html.twig', [
             'form' => $form,
         ]);
+    }
+
+    #[Route('/{slug}/update', name: '.update', methods: ['GET', 'POST'])]
+    public function update(?Article $article, Request $request): Response|RedirectResponse
+    {
+        if (!$article) {
+            $this->addFlash('error', 'Article non trouvé');
+
+            return $this->redirectToRoute('admin.articles.index');
+        }
+
+        $form = $this->createForm(ArticleType::class, $article);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->em->persist($article);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Article mis à jour avec succès');
+
+            return $this->redirectToRoute('admin.articles.index');
+        }
+
+        return $this->render('Backend/Articles/update.html.twig', [
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}/delete', name: '.delete', methods: ['POST'])]
+    public function delete(?Article $article, Request $request): RedirectResponse
+    {
+        if (!$article) {
+            $this->addFlash('error', 'Article non trouvé');
+
+            return $this->redirectToRoute('admin.articles.index');
+        }
+
+        if ($this->isCsrfTokenValid('delete' . $article->getId(), $request->request->get('token'))) {
+            $this->em->remove($article);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Article supprimé avec succès');
+        } else {
+            $this->addFlash('error', 'Token invalide');
+        }
+
+        return $this->redirectToRoute('admin.articles.index');
     }
 }
