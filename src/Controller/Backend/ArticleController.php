@@ -37,6 +37,9 @@ class ArticleController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $user = $this->getUser();
+            $article->setUser($user);
+
             $this->em->persist($article);
             $this->em->flush();
 
@@ -59,7 +62,7 @@ class ArticleController extends AbstractController
             return $this->redirectToRoute('admin.articles.index');
         }
 
-        $form = $this->createForm(ArticleType::class, $article);
+        $form = $this->createForm(ArticleType::class, $article, ['isEdit' => true]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
