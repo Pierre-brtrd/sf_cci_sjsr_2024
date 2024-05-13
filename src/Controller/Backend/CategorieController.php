@@ -7,6 +7,7 @@ use App\Form\CategorieType;
 use App\Repository\CategorieRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -95,5 +96,26 @@ class CategorieController extends AbstractController
         }
 
         return $this->redirectToRoute('admin.categories.index');
+    }
+
+    #[Route('/{id}/switch', name: '.switch', methods: ['GET'])]
+    public function switch(?Categorie $categorie): JsonResponse
+    {
+        if (!$categorie) {
+            return $this->json([
+                'status' => 'error',
+                'message' => 'Catégorie non trouvée'
+            ], 404);
+        }
+
+        $categorie->setEnable(!$categorie->isEnable());
+        $this->em->persist($categorie);
+        $this->em->flush();
+
+        return $this->json([
+            'status' => 'success',
+            'message' => 'Visibility changed',
+            'enable' => $categorie->isEnable(),
+        ]);
     }
 }
