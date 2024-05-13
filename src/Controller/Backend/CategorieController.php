@@ -4,6 +4,7 @@ namespace App\Controller\Backend;
 
 use App\Entity\Categorie;
 use App\Form\CategorieType;
+use App\Repository\CategorieRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,6 +17,14 @@ class CategorieController extends AbstractController
     public function __construct(
         private EntityManagerInterface $em,
     ) {
+    }
+
+    #[Route('', name: '.index', methods: ['GET'])]
+    public function index(CategorieRepository $categorieRepo): Response
+    {
+        return $this->render('Backend/Categories/index.html.twig', [
+            'categories' => $categorieRepo->findAllOrderByName()
+        ]);
     }
 
     #[Route('/create', name: '.create', methods: ['GET', 'POST'])]
