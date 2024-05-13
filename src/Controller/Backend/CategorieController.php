@@ -75,4 +75,25 @@ class CategorieController extends AbstractController
             'form' => $form,
         ]);
     }
+
+    #[Route('/{id}/delete', name: '.delete', methods: ['POST'])]
+    public function delete(?Categorie $categorie, Request $request): RedirectResponse
+    {
+        if (!$categorie) {
+            $this->addFlash('error', 'Catégorie non trouvée');
+
+            return $this->redirectToRoute('admin.categories.index');
+        }
+
+        if ($this->isCsrfTokenValid('delete' . $categorie->getId(), $request->request->get('token'))) {
+            $this->em->remove($categorie);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Catégorie supprimée avec succès');
+        } else {
+            $this->addFlash('error', 'Token invalide');
+        }
+
+        return $this->redirectToRoute('admin.categories.index');
+    }
 }
