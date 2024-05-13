@@ -7,6 +7,7 @@ use App\Form\CategorieType;
 use App\Repository\CategorieRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -28,7 +29,7 @@ class CategorieController extends AbstractController
     }
 
     #[Route('/create', name: '.create', methods: ['GET', 'POST'])]
-    public function create(Request $request): Response
+    public function create(Request $request): Response|RedirectResponse
     {
         $categorie = new Categorie;
 
@@ -45,6 +46,32 @@ class CategorieController extends AbstractController
         }
 
         return $this->render('Backend/Categories/create.html.twig', [
+            'form' => $form,
+        ]);
+    }
+
+    #[Route('/{id}/update', name: '.update', methods: ['GET', 'POST'])]
+    public function update(?Categorie $categorie, Request $request): Response|RedirectResponse
+    {
+        if (!$categorie) {
+            $this->addFlash('error', 'Catégorie non trouvée');
+
+            return $this->redirectToRoute('admin.categories.index');
+        }
+
+        $form = $this->createForm(CategorieType::class, $categorie);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->em->persist($categorie);
+            $this->em->flush();
+
+            $this->addFlash('success', 'Catégorie modifiée avec succès');
+
+            return $this->redirectToRoute('admin.categories.index');
+        }
+
+        return $this->render('Backend/Categories/update.html.twig', [
             'form' => $form,
         ]);
     }
