@@ -37,6 +37,18 @@ class ArticleRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function findEnable(): array
+    {
+        return $this->createQueryBuilder('a')
+            ->select('a', 'u', 'c')
+            ->andWhere('a.enable = :enable')
+            ->setParameter('enable', true)
+            ->join('a.user', 'u')
+            ->leftJoin('a.categories', 'c')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Article[] Returns an array of Article objects
     //     */
